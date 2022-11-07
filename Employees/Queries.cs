@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Employees
@@ -173,7 +174,7 @@ namespace Employees
 
         // -- Which employees are engineers?
 
-        public static void GetAllEngineersQuery() // Doesn't work yet
+        public static void GetAllEngineersQuery() //Doesn't work yet
         {
             var professions =
                 from p in context.Professions
@@ -227,26 +228,41 @@ namespace Employees
             }
         }
 
-        public static void GetAllEngineersQuery2()
+        public static List<Employee> GetAllEngineersQuery2() 
         {
             List<Profession> professionsThatAreRelated = new();
-            int professionId = 3;
+
+            int professionId = 1;
+
             var professionsTree = context.Professions.ToLookup(p => p.ParentProfessionId);
 
-            foreach (var node in professionsTree)
+            //First node contains --> Professions with ParentProfessionId null.
+            //Second node contains --> Professions with ParentProfessionId 1.
+            //Third node contains --> Professions with ParentProfessionId 2.
+            foreach (var node in professionsTree) 
             {
-                if (node.Key == professionId)
+                if (node.Key == professionId) //Node key is "null" in the first iteration, "1" in the second and "2" in the third.
                 {
-                    professionsThatAreRelated.AddRange(professionsTree[node.Key]);
+                    professionsThatAreRelated.AddRange(professionsTree[node.Key]); //Adds S.Developer and M.Engineer in this case.
                 }
+                //Adds the children of any profession that has children and that is already in the "professionsThatAreRelated" list.
                 else if (node.Key != null && professionsThatAreRelated.Select(p => p.Id).ToList().Contains((int)node.Key))
                 {
-                    professionsThatAreRelated.AddRange(professionsTree[node.Key]);
+                    professionsThatAreRelated.AddRange(professionsTree[node.Key]); //Adds Web, FS and DB Developers in this case.
                 }
             }
+
+            var engineers =
+                from e in context.Employees
+                where e.ProfessionId == professionId || professionsThatAreRelated.Select(p => p.Id).ToList().Contains(e.ProfessionId)
+                select e;
+
+            List<Employee> finalList = engineers.ToList();
+
+            return finalList;
         }
 
-        public static void GetAllEngineersQuery3()
+        public static List<Employee> GetAllEngineersQuery3()
         {
             int professionId = 1;
 
@@ -260,11 +276,19 @@ namespace Employees
             {
                 professionsThatAreRelated.AddRange(children); //2 and 6
 
+                //Why do we need "Any()"?
                 children = professions.Where(p => children.Where(c => p.ParentProfessionId == c.Id).Any()).ToList();
             }
+
+            List<Employee> engineers = 
+                context.Employees
+                .Where(e => professionsThatAreRelated.Select(p => p.Id).ToList().Contains(e.ProfessionId))
+                .ToList();   
+
+            return engineers;
         }
 
-        public static List<Employee> GetAllEngineersMethod()
+        public static List<Employee> GetAllEngineersMethod() //Doesn't work yet
         {
             var engineerId =
                 context.Professions

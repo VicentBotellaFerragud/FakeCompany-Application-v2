@@ -42,7 +42,7 @@ namespace Employees
 
             //Queries.GetAllEngineersQuery();
             //Queries.GetAllEngineersQuery2();
-            //Queries.GetAllEngineersQuery3();
+            Queries.GetAllEngineersQuery3();
             //Queries.GetAllEngineersMethod();
 
             //Queries.GetAllEmployeesThatHaveTheSameQualificationsAsAGivenEmployeeQuery(25);
