@@ -174,61 +174,7 @@ namespace Employees
 
         // -- Which employees are engineers?
 
-        public static void GetAllEngineersQuery() //Doesn't work yet
-        {
-            var professions =
-                from p in context.Professions
-                select p;
-
-            List<Profession> professionsThatAreRelatedToEngineer = new();
-
-            var professionsTree = professions.ToLookup(p => p.ParentProfessionId);
-
-            foreach (var level in professionsTree.Select((value, i) => new { i, value }))
-            {
-                if (level.i == 0)
-                {
-                    var grandParentsSelection = 
-                        professionsTree[null]
-                        .Where(p => p.Name == "Engineer")
-                        .Select(p => p);
-
-                    professionsThatAreRelatedToEngineer.AddRange(grandParentsSelection); //Engineer is added
-                }
-                else if (level.i == 1)
-                {
-                    List<int> ParentIds = professionsTree[null].Select(p => p.Id).ToList(); //Ids are  1 and 7
-
-                    var descendants =
-                        professionsTree[level.i]
-                        .Select(p => p); //Descendant Ids are 2 and 6  
-
-                    var descendantsSelection =
-                        descendants 
-                        .Where(p => ParentIds.Contains((int)p.ParentProfessionId)) //Descendant parentIds are 1 and 1
-                        .Select(p => p);
-
-                    professionsThatAreRelatedToEngineer.AddRange(descendantsSelection); //S.Engineer and M.Engineer are added
-                } 
-                else
-                {
-                    List<int> ParentIds = professionsTree[level.i - 1].Select(p => p.Id).ToList(); //Ids are 2 and 6
-
-                    var descendants =
-                        professionsTree[level.i]
-                        .Select(p => p); //Descendant Ids are 3, 4 and 5 
-
-                    var descendantsSelection =
-                        descendants
-                        .Where(p => ParentIds.Contains((int)p.ParentProfessionId)) //Descendant parentIds are 2, 2 and 2
-                        .Select(p => p);
-
-                    professionsThatAreRelatedToEngineer.AddRange(descendantsSelection); //Web, FS and DB Developers are added
-                }
-            }
-        }
-
-        public static List<Employee> GetAllEngineersQuery2() 
+        public static List<Employee> GetAllEngineersMethod() 
         {
             List<Profession> professionsThatAreRelated = new();
 
@@ -262,7 +208,7 @@ namespace Employees
             return finalList;
         }
 
-        public static List<Employee> GetAllEngineersQuery3()
+        public static List<Employee> GetAllEngineersMethod2()
         {
             int professionId = 1;
 
@@ -275,8 +221,6 @@ namespace Employees
             while (children.Any())            
             {
                 professionsThatAreRelated.AddRange(children); //2 and 6
-
-                //Why do we need "Any()"?
                 children = professions.Where(p => children.Where(c => p.ParentProfessionId == c.Id).Any()).ToList();
             }
 
@@ -284,31 +228,6 @@ namespace Employees
                 context.Employees
                 .Where(e => professionsThatAreRelated.Select(p => p.Id).ToList().Contains(e.ProfessionId))
                 .ToList();   
-
-            return engineers;
-        }
-
-        public static List<Employee> GetAllEngineersMethod() //Doesn't work yet
-        {
-            var engineerId =
-                context.Professions
-                .Where(p => p.Name == "Engineer")
-                .Select(p => p.Id);
-
-            var engineerChildrenIds =
-                context.Professions
-                .Where(p => p.ParentProfessionId != null && engineerId.Contains((int)p.ParentProfessionId))
-                .Select(p => p.Id);
-
-            var engineerGrandChildrenIds =
-                context.Professions
-                .Where(p => p.ParentProfessionId != null && engineerChildrenIds.Contains((int)p.ParentProfessionId))
-                .Select(p => p.Id);
-
-            List<Employee> engineers =
-                context.Employees
-                .Where(e => engineerId.Contains(e.ProfessionId) || engineerChildrenIds.Contains(e.ProfessionId) || engineerGrandChildrenIds.Contains(e.ProfessionId))
-                .ToList();
 
             return engineers;
         }

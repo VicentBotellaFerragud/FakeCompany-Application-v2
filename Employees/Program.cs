@@ -40,10 +40,8 @@ namespace Employees
             //Queries.GetAllSoftwareDevelopersQuery();
             //Queries.GetAllSoftwareDevelopersMethod();
 
-            //Queries.GetAllEngineersQuery();
-            //Queries.GetAllEngineersQuery2();
-            Queries.GetAllEngineersQuery3();
             //Queries.GetAllEngineersMethod();
+            //Queries.GetAllEngineersMethod2();
 
             //Queries.GetAllEmployeesThatHaveTheSameQualificationsAsAGivenEmployeeQuery(25);
             //Queries.GetAllEmployeesThatHaveTheSameQualificationsAsAGivenEmployeeMethod(25);
