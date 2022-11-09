@@ -353,7 +353,7 @@ namespace Employees
 
         }
 
-        public static void GetAllEmployeesThatHaveMoreThanTwoQualificationsInCommonMethod()
+        public static List<Employee> GetAllEmployeesThatHaveMoreThanTwoQualificationsInCommonMethod()
         {
             var employeesWithMoreThanTwoQualifications =
                 context.Employees
@@ -372,9 +372,11 @@ namespace Employees
                 {
                     List<int> qualificationList2 = emp2.EmployeeQualificationRefs.Select(eqr => eqr.QualificationId).Distinct().ToList();
 
-                    bool match = (qualificationList2.All(qId => qualificationList1.Contains(qId))) && (qualificationList1.All(qId => qualificationList2.Contains(qId)));
+                    //bool match = (qualificationList2.All(qId => qualificationList1.Contains(qId))) && (qualificationList1.All(qId => qualificationList2.Contains(qId)));
 
-                    if (match == true && emp1.Id != emp2.Id)
+                    int count = qualificationList2.Where(qId => qualificationList1.Contains(qId)).ToList().Count();
+
+                    if (count > 2 && emp1.Id != emp2.Id)
                     {
                         employeesWithMoreThanTwoQualificationsInCommon.AddRange(new List<Employee> { emp1, emp2 });
                     }
@@ -386,6 +388,8 @@ namespace Employees
                 .Select(e => e)
                 .Distinct()
                 .ToList();
+
+            return employeesWithMoreThanTwoQualificationsInCommonFiltered;
         }
     }
 }
