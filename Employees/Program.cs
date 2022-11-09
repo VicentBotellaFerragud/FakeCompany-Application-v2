@@ -51,7 +51,8 @@ namespace Employees
             //Queries.GetAllEmployeesThatHaveTheSameQualificationsAsAGivenEmployeeMethod(25);
 
             //Queries.GetAllEmployeesThatHaveMoreThanTwoQualificationsInCommonQuery();
-            Queries.GetAllEmployeesThatHaveMoreThanTwoQualificationsInCommonMethod();
+            //Queries.GetAllEmployeesThatHaveMoreThanTwoQualificationsInCommonMethod();
+            Queries.GetAllEmployeesThatHaveMoreThanTwoQualificationsInCommonMethod2();
 
             Console.ReadKey();
         }

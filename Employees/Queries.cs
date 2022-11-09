@@ -355,6 +355,8 @@ namespace Employees
 
         public static List<Employee> GetAllEmployeesThatHaveMoreThanTwoQualificationsInCommonMethod()
         {
+            int theCount = 0; //2352 1118
+
             var employeesWithMoreThanTwoQualifications =
                 context.Employees
                 .Include(e => e.EmployeeQualificationRefs)
@@ -366,13 +368,15 @@ namespace Employees
             
             foreach (var emp1 in employeesWithMoreThanTwoQualifications)
             {
+                theCount++;
+
                 List<int> qualificationList1 = emp1.EmployeeQualificationRefs.Select(eqr => eqr.QualificationId).Distinct().ToList();
 
-                foreach (var emp2 in employeesWithMoreThanTwoQualifications)
+                foreach (var emp2 in employeesWithMoreThanTwoQualifications.Where(e => !employeesWithMoreThanTwoQualificationsInCommon.Contains(e) && e.Id > emp1.Id))
                 {
-                    List<int> qualificationList2 = emp2.EmployeeQualificationRefs.Select(eqr => eqr.QualificationId).Distinct().ToList();
+                    theCount++;
 
-                    //bool match = (qualificationList2.All(qId => qualificationList1.Contains(qId))) && (qualificationList1.All(qId => qualificationList2.Contains(qId)));
+                    List<int> qualificationList2 = emp2.EmployeeQualificationRefs.Select(eqr => eqr.QualificationId).Distinct().ToList();
 
                     int count = qualificationList2.Where(qId => qualificationList1.Contains(qId)).ToList().Count();
 
@@ -381,6 +385,59 @@ namespace Employees
                         employeesWithMoreThanTwoQualificationsInCommon.AddRange(new List<Employee> { emp1, emp2 });
                     }
                 }
+            }
+
+            List<Employee> employeesWithMoreThanTwoQualificationsInCommonFiltered =
+                employeesWithMoreThanTwoQualificationsInCommon
+                .Select(e => e)
+                .Distinct()
+                .ToList();
+
+            return employeesWithMoreThanTwoQualificationsInCommonFiltered;
+        }
+
+        public static List<Employee> GetAllEmployeesThatHaveMoreThanTwoQualificationsInCommonMethod2()
+        {
+            int theCount = 0; //1176
+
+            var employeesWithMoreThanTwoQualifications =
+                context.Employees
+                .Include(e => e.EmployeeQualificationRefs)
+                .Where(e => e.EmployeeQualificationRefs.Select(eqr => eqr.QualificationId).Distinct().Count() > 2)
+                .Select(e => e)
+                .ToList();
+
+            List<Employee> employeesWithMoreThanTwoQualificationsInCommon = new();
+
+            while (employeesWithMoreThanTwoQualifications.Any())
+            {
+                theCount++;
+
+                Employee firstOut = employeesWithMoreThanTwoQualifications.First();
+
+                List<int> qualificationList1 = firstOut.EmployeeQualificationRefs.Select(eqr => eqr.QualificationId).Distinct().ToList();
+
+                List<Employee> employeesWithMoreThanTwoQualificationsClone = new List<Employee>(employeesWithMoreThanTwoQualifications.Where(e => e.Id > firstOut.Id));
+                 
+                while (employeesWithMoreThanTwoQualificationsClone.Any())
+                {
+                    theCount++;
+
+                    Employee firstIn = employeesWithMoreThanTwoQualificationsClone.First();
+
+                    List<int> qualificationList2 = firstIn.EmployeeQualificationRefs.Select(eqr => eqr.QualificationId).Distinct().ToList();
+
+                    int count = qualificationList2.Where(qId => qualificationList1.Contains(qId)).ToList().Count();
+
+                    if (count > 2)
+                    {
+                        employeesWithMoreThanTwoQualificationsInCommon.AddRange(new List<Employee> { firstIn, firstOut });
+                    }
+
+                    employeesWithMoreThanTwoQualificationsClone.Remove(firstIn);
+                }
+
+                employeesWithMoreThanTwoQualifications.Remove(firstOut);
             }
 
             List<Employee> employeesWithMoreThanTwoQualificationsInCommonFiltered =
