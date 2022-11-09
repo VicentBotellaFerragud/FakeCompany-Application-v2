@@ -40,14 +40,18 @@ namespace Employees
             //Queries.GetAllSoftwareDevelopersQuery();
             //Queries.GetAllSoftwareDevelopersMethod();
 
+            //Queries.GetAllEngineersQuery();
             //Queries.GetAllEngineersMethod();
-            //Queries.GetAllEngineersMethod2();
+
+            //Queries.GetAllEmployeesOfACertainProfession(1);
+
+            //Queries.GetAllDescendants();
 
             //Queries.GetAllEmployeesThatHaveTheSameQualificationsAsAGivenEmployeeQuery(25);
             //Queries.GetAllEmployeesThatHaveTheSameQualificationsAsAGivenEmployeeMethod(25);
 
             //Queries.GetAllEmployeesThatHaveMoreThanTwoQualificationsInCommonQuery();
-            //Queries.GetAllEmployeesThatHaveMoreThanTwoQualificationsInCommonMethod();
+            Queries.GetAllEmployeesThatHaveMoreThanTwoQualificationsInCommonMethod();
 
             Console.ReadKey();
         }

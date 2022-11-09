@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.Design;
+using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -174,7 +175,7 @@ namespace Employees
 
         // -- Which employees are engineers?
 
-        public static List<Employee> GetAllEngineersMethod() 
+        public static List<Employee> GetAllEngineersQuery() 
         {
             List<Profession> professionsThatAreRelated = new();
 
@@ -208,7 +209,7 @@ namespace Employees
             return finalList;
         }
 
-        public static List<Employee> GetAllEngineersMethod2()
+        public static List<Employee> GetAllEngineersMethod()
         {
             int professionId = 1;
 
@@ -230,6 +231,82 @@ namespace Employees
                 .ToList();   
 
             return engineers;
+        }
+
+        // -- Bonus: Which employees are...?
+
+        public static List<Employee> GetAllEmployeesOfACertainProfession(int professionId) //Sample case --> professionId = 1:
+        {
+            //List of all professions.
+            List<Profession> lookup = context.Professions.ToList();
+
+            //At first contains only the profession that corresponds to the passed-in professionId (Engineer).
+            List<Profession> passedInProfessionPlusDescendants = lookup.Where(p => p.Id == professionId).ToList();
+
+            //At first, list of all professions whose ParentProfessionId is the engineer id (S.Engineer and M.Engineer).
+            List<Profession> children = lookup.Where(p => p.ParentProfessionId == professionId).ToList();
+
+            //As long as the children list is not empty...
+            while (children.Any())
+            {
+                //All children are added to the passedInProfessionPlusDescendants list.
+                passedInProfessionPlusDescendants.AddRange(children);
+
+                //A new empty list is created.
+                List<Profession> childrensChildren = new();
+
+                //For each profession in the children list... (At first, S.Engineer and M.Engineer)
+                foreach (Profession c in children)
+                {
+                    //List of all professions whose ParentProfessionId is the S.Engineer id
+                    //(in the 1st iteration, in the 2nd the list will contain all professions whose ParentProfessionId
+                    //is the M.Engineer).
+                    var cc = lookup.Where(p => p.ParentProfessionId == c.Id);
+
+                    //Professions are added to the childrensChildren list.
+                    childrensChildren.AddRange(cc);
+                }
+
+                //Finally the children list becomes the childrensChildren list.
+                children = childrensChildren.ToList();
+
+                //Because at some point the professions in the children list will have no more descendants (professions whose 
+                //ParentProfessionIds are their Ids) the childrensChildren list will be empty after the foreach loop and, 
+                //therefore, so will the children list.
+            }
+
+            List<Employee> allEmployeesOfACertainProfession =
+                context.Employees
+                .Where(e => passedInProfessionPlusDescendants.Select(p => p.Id).ToList().Contains(e.ProfessionId))
+                .ToList();
+
+            return allEmployeesOfACertainProfession;
+        }
+
+        // -- Bonus2: Which professions are the "descendants" from a given profession?
+
+        public static List<Profession> GetAllDescendants(Profession profession, List<Profession> lookup)
+        {
+            var children = lookup.Where(p => p.ParentProfessionId == profession.Id);
+
+            if (children.Any())
+            {
+                List<Profession> descendants = new();
+
+                descendants.AddRange(children);
+
+                foreach (var c in children)
+                {
+                    var d = GetAllDescendants(c, lookup);
+                    descendants.AddRange(d);
+                }
+
+                return descendants;
+            }
+            else
+            {
+                return new List<Profession>();
+            }
         }
 
         // -- Which employees have the exact same qualifications as a given employee?
@@ -271,28 +348,44 @@ namespace Employees
 
         // -- Which employees have more than two qualifications in common?
 
+        public static void GetAllEmployeesThatHaveMoreThanTwoQualificationsInCommonQuery()
+        {
+
+        }
+
         public static void GetAllEmployeesThatHaveMoreThanTwoQualificationsInCommonMethod()
         {
             var employeesWithMoreThanTwoQualifications =
                 context.Employees
                 .Include(e => e.EmployeeQualificationRefs)
-                .Where(e => e.EmployeeQualificationRefs.Distinct().Count() > 2)
-                .Select(e => e);
-
-            var listOfEmployeeQualifications =
-                context.Employees
-                .Include(e => e.EmployeeQualificationRefs)
-                .Where(e => e.EmployeeQualificationRefs.Distinct().Count() > 2)
-                .Select(e => e.EmployeeQualificationRefs)
+                .Where(e => e.EmployeeQualificationRefs.Select(eqr => eqr.QualificationId).Distinct().Count() > 2) 
+                .Select(e => e)
                 .ToList();
 
-            List<int> list = new List<int>{ 4, 7, 15, 17, 18 };
-
-            foreach (var employee in employeesWithMoreThanTwoQualifications)
+            List<Employee> employeesWithMoreThanTwoQualificationsInCommon = new();
+            
+            foreach (var emp1 in employeesWithMoreThanTwoQualifications)
             {
-                //var x = employee.EmployeeQualificationRefs.Intersect(list);
-                //Console.WriteLine(x);
+                List<int> qualificationList1 = emp1.EmployeeQualificationRefs.Select(eqr => eqr.QualificationId).Distinct().ToList();
+
+                foreach (var emp2 in employeesWithMoreThanTwoQualifications)
+                {
+                    List<int> qualificationList2 = emp2.EmployeeQualificationRefs.Select(eqr => eqr.QualificationId).Distinct().ToList();
+
+                    bool match = (qualificationList2.All(qId => qualificationList1.Contains(qId))) && (qualificationList1.All(qId => qualificationList2.Contains(qId)));
+
+                    if (match == true && emp1.Id != emp2.Id)
+                    {
+                        employeesWithMoreThanTwoQualificationsInCommon.AddRange(new List<Employee> { emp1, emp2 });
+                    }
+                }
             }
+
+            List<Employee> employeesWithMoreThanTwoQualificationsInCommonFiltered =
+                employeesWithMoreThanTwoQualificationsInCommon
+                .Select(e => e)
+                .Distinct()
+                .ToList();
         }
     }
 }
