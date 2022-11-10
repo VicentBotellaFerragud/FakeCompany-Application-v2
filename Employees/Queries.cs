@@ -16,7 +16,7 @@ namespace Employees
 {
     internal class Queries
     {
-        private static EmployeesContext context = new EmployeesContext();
+        private static EmployeesContext context = new();
 
         /*
             -- Which employees are working for a specific company?
@@ -350,12 +350,12 @@ namespace Employees
 
         public static void GetAllEmployeesThatHaveMoreThanTwoQualificationsInCommonQuery()
         {
-
+            //to do
         }
 
         public static List<Employee> GetAllEmployeesThatHaveMoreThanTwoQualificationsInCommonMethod()
         {
-            int theCount = 0; //2352 1118
+            int iterationsCount = 0; //1118
 
             var employeesWithMoreThanTwoQualifications =
                 context.Employees
@@ -368,13 +368,13 @@ namespace Employees
             
             foreach (var emp1 in employeesWithMoreThanTwoQualifications)
             {
-                theCount++;
+                iterationsCount++;
 
                 List<int> qualificationList1 = emp1.EmployeeQualificationRefs.Select(eqr => eqr.QualificationId).Distinct().ToList();
 
                 foreach (var emp2 in employeesWithMoreThanTwoQualifications.Where(e => !employeesWithMoreThanTwoQualificationsInCommon.Contains(e) && e.Id > emp1.Id))
                 {
-                    theCount++;
+                    iterationsCount++;
 
                     List<int> qualificationList2 = emp2.EmployeeQualificationRefs.Select(eqr => eqr.QualificationId).Distinct().ToList();
 
@@ -398,7 +398,7 @@ namespace Employees
 
         public static List<Employee> GetAllEmployeesThatHaveMoreThanTwoQualificationsInCommonMethod2()
         {
-            int theCount = 0; //1176
+            int iterationsCount = 0; //1118
 
             var employeesWithMoreThanTwoQualifications =
                 context.Employees
@@ -411,17 +411,20 @@ namespace Employees
 
             while (employeesWithMoreThanTwoQualifications.Any())
             {
-                theCount++;
+                iterationsCount++;
 
                 Employee firstOut = employeesWithMoreThanTwoQualifications.First();
 
                 List<int> qualificationList1 = firstOut.EmployeeQualificationRefs.Select(eqr => eqr.QualificationId).Distinct().ToList();
 
-                List<Employee> employeesWithMoreThanTwoQualificationsClone = new List<Employee>(employeesWithMoreThanTwoQualifications.Where(e => e.Id > firstOut.Id));
-                 
+                List<Employee> employeesWithMoreThanTwoQualificationsClone = 
+                    new(employeesWithMoreThanTwoQualifications.Where(e => e.Id > firstOut.Id && !employeesWithMoreThanTwoQualificationsInCommon.Contains(e)));
+
+                List<Employee> firstOutMatches = new();
+
                 while (employeesWithMoreThanTwoQualificationsClone.Any())
                 {
-                    theCount++;
+                    iterationsCount++;
 
                     Employee firstIn = employeesWithMoreThanTwoQualificationsClone.First();
 
@@ -431,15 +434,29 @@ namespace Employees
 
                     if (count > 2)
                     {
-                        employeesWithMoreThanTwoQualificationsInCommon.AddRange(new List<Employee> { firstIn, firstOut });
+                        firstOutMatches.Add(firstIn);     
                     }
 
-                    employeesWithMoreThanTwoQualificationsClone.Remove(firstIn);
+                    employeesWithMoreThanTwoQualificationsClone.Remove(firstIn);                 
+                }
+
+                if (firstOutMatches.Any())
+                {
+                    if (!employeesWithMoreThanTwoQualificationsInCommon.Contains(firstOut))
+                    {
+                        employeesWithMoreThanTwoQualificationsInCommon.Add(firstOut);
+                    }
+
+                    employeesWithMoreThanTwoQualificationsInCommon.AddRange(firstOutMatches);
                 }
 
                 employeesWithMoreThanTwoQualifications.Remove(firstOut);
+
+                employeesWithMoreThanTwoQualifications =
+                    employeesWithMoreThanTwoQualifications.Where(e => !employeesWithMoreThanTwoQualificationsClone.Contains(e)).ToList();
             }
 
+            //In theory this filter is no longer necessary...
             List<Employee> employeesWithMoreThanTwoQualificationsInCommonFiltered =
                 employeesWithMoreThanTwoQualificationsInCommon
                 .Select(e => e)
