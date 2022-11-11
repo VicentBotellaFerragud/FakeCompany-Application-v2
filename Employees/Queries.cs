@@ -460,7 +460,7 @@ namespace Employees
         {
             int iterationsCount = 0;
 
-            var employees =
+            List<Employee> employees =
                 context.Employees
                 .Include(e => e.EmployeeQualificationRefs)
                 .Select(e => e)
@@ -474,17 +474,17 @@ namespace Employees
 
                 bool isE1Master = true;
 
-                List<int> q1 = e1.EmployeeQualificationRefs.Select(eqr => eqr.QualificationId).ToList();
+                List<int> q1 = e1.EmployeeQualificationRefs.Select(eqr => eqr.QualificationId).Distinct().ToList();
 
                 foreach (var e2 in employees)
                 {
                     iterationsCount++;
 
-                    List<int> q2 = e2.EmployeeQualificationRefs.Select(eqr => eqr.QualificationId).ToList();
+                    List<int> q2 = e2.EmployeeQualificationRefs.Select(eqr => eqr.QualificationId).Distinct().ToList();
 
                     bool hasE2AllQualificationsFromE1 = q1.All(q => q2.Contains(q));
 
-                    bool hasE2MoreQualificationsThanE1 = q1.Count < q2.Count;
+                    bool hasE2MoreQualificationsThanE1 = q2.Count > q1.Count;
 
                     bool isE2MoreQualifiedThanE1 = hasE2AllQualificationsFromE1 && hasE2MoreQualificationsThanE1;
 
@@ -498,6 +498,36 @@ namespace Employees
                 if (isE1Master)
                 {
                     masters.Add(e1);
+                }
+            }
+
+            return masters;
+        }
+
+        public static List<Employee> GetAllEmployeesWithTheMostUniqueQualifications2()
+        {
+            List<Employee> employees =
+                context.Employees
+                .Include(e => e.EmployeeQualificationRefs)
+                .Select(e => e)
+                .ToList();
+
+            List<Employee> masters = new();
+
+            foreach (var e in employees)
+            {
+                List<int> eQualifications = e.EmployeeQualificationRefs.Select(eqr => eqr.QualificationId).Distinct().ToList();
+
+                List<Employee> employeesThatAreMoreQualified =
+                     employees
+                     .Where(e => eQualifications.All(q => e.EmployeeQualificationRefs.Select(eqr => eqr.QualificationId).Distinct().Contains(q)))
+                     .Where(e => e.EmployeeQualificationRefs.Select(eqr => eqr.QualificationId).Distinct().Count() > eQualifications.Count)
+                     .Select(e => e)
+                     .ToList();
+
+                if (!employeesThatAreMoreQualified.Any())
+                {
+                    masters.Add(e);
                 }
             }
 

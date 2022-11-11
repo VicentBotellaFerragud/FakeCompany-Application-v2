@@ -53,7 +53,8 @@ namespace Employees
             //Queries.GetAllEmployeesThatHaveMoreThanTwoQualificationsInCommon();
             //Queries.GetAllEmployeesThatHaveMoreThanTwoQualificationsInCommon2();
 
-            Queries.GetAllEmployeesWithTheMostUniqueQualifications();
+            //Queries.GetAllEmployeesWithTheMostUniqueQualifications();
+            //Queries.GetAllEmployeesWithTheMostUniqueQualifications2();
 
             Console.ReadKey();
         }
