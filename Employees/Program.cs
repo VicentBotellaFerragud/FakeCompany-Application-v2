@@ -50,9 +50,10 @@ namespace Employees
             //Queries.GetAllEmployeesThatHaveTheSameQualificationsAsAGivenEmployeeQuery(25);
             //Queries.GetAllEmployeesThatHaveTheSameQualificationsAsAGivenEmployeeMethod(25);
 
-            //Queries.GetAllEmployeesThatHaveMoreThanTwoQualificationsInCommonQuery();
-            //Queries.GetAllEmployeesThatHaveMoreThanTwoQualificationsInCommonMethod();
-            Queries.GetAllEmployeesThatHaveMoreThanTwoQualificationsInCommonMethod2();
+            //Queries.GetAllEmployeesThatHaveMoreThanTwoQualificationsInCommon();
+            //Queries.GetAllEmployeesThatHaveMoreThanTwoQualificationsInCommon2();
+
+            Queries.GetAllEmployeesWithTheMostUniqueQualifications();
 
             Console.ReadKey();
         }
